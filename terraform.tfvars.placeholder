@@ -1,0 +1,18 @@
+region                                    = "$(AWS_REGION)"
+environment                               = "dev"
+ecr_name                                  = "ecr-example"
+beanstalk_application_version_name        = "example-ebs-version"
+beanstalk_application_version_description = "application version created by terraform"
+application_name                          = "example"
+solution_stack_name                       = "64bit Amazon Linux 2 v3.5.8 running Docker"
+beanstalk_application_description         = "application version created by terraform"
+beanstalk_instance_profile_name           = "beanstalk_iam_instance_profile"
+beanstalk_role_name                       = "beanstalk_role"
+tags = {
+  owner       = "Ivo Fulco"
+  environment = "DEV"
+  project     = "Example ebs"
+}
+access_key     = "$(AWS_ACCESS_KEY_ID)"
+secret_key     = "$(AWS_SECRET_ACCESS_KEY)"
+aws_account_id = "$(AWS_ACCOUNT_ID)"

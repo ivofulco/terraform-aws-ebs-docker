@@ -1,0 +1,57 @@
+trigger:
+  - master
+
+parameters:
+- name: environment
+  displayName: Ambiente
+  type: string
+  default: dev
+  values:
+  - dev
+
+name: $(Build.DefinitionName)_$(Date:yyyyMMdd)_$(Rev:r)
+
+variables:
+  - group: AWS-ACCOUNT-SERVICE
+  
+pool:
+  vmImage: ubuntu-latest 
+
+steps:
+- checkout: self
+- bash: 'mv terraform.tfvars.placeholder terraform.tfvars -v'
+  displayName: 'Rename terraform.tfvars'
+- task: qetza.replacetokens.replacetokens-task.replacetokens@5
+  displayName: 'Replace tokens in terraform.tfvars'
+  inputs:
+    targetFiles: terraform.tfvars
+    tokenPattern: azpipelines
+    actionOnNoFiles: fail
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+  displayName: 'Install Terraform latest'
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV4@4
+  displayName: 'Terraform : aws init'
+  inputs:
+    provider: aws
+    backendServiceAWS: 'AWS-TERRAFORM-SVC'
+    backendAWSBucketName: 'example-terraform-state'
+    backendAWSKey: ${{ parameters.environment }}/example.tfstate
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV4@4
+  displayName: 'Terraform : aws plan'
+  inputs:
+    provider: aws
+    command: plan
+    environmentServiceNameAWS: 'AWS-TERRAFORM-SVC'
+    backendServiceAWS: 'AWS-TERRAFORM-SVC'
+    backendAWSBucketName: 'example-terraform-state'
+    backendAWSKey: ${{ parameters.environment }}/example.tfstate
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV4@4
+  displayName: 'Terraform : aws apply'
+  inputs:
+    provider: aws
+    command: apply
+    commandOptions: '-auto-approve'
+    environmentServiceNameAWS: 'AWS-TERRAFORM-SVC'
+    backendServiceAWS: 'AWS-TERRAFORM-SVC'
+    backendAWSBucketName: 'example-terraform-state'
+    backendAWSKey: ${{ parameters.environment }}/example.tfstate
